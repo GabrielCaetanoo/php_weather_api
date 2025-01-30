@@ -4,6 +4,9 @@ require_once 'inc/config.php';
 require_once 'inc/api.php';
 
 $city = 'Brazil';
+if(isset($_GET['city'])){
+    $city = $_GET['city'];
+}
 $days = 5;
 
 $results = Api::get($city, $days);
@@ -27,6 +30,7 @@ $location['current_time'] = $data['location']['localtime'];
 
 // current weather data
 $current = [];
+$current['info'] = 'Neste momento:';
 $current['temperature'] = $data['current']['temp_c'];
 $current['condition'] = $data['current']['condition']['text'];
 $current['condition_icon'] = $data['current']['condition']['icon'];
@@ -44,6 +48,14 @@ foreach($data['forecast']['forecastday'] as $day){
     $forecast_day['min_temp'] = $day['day']['mintemp_c'];
     $forecast[] = $forecast_day;
 }
+
+function city_selected($city, $selected_city){
+    if($city == $selected_city){
+        return'selected';
+    }
+    return '';
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -60,23 +72,53 @@ foreach($data['forecast']['forecastday'] as $day){
         <div class="row justify-content-center mt-5">
 
             <div class="col-10 p-5 bg-light text-black">
-                <h1 class="text-center mb-4">Tempo em <?php echo $location['name'];?></h1>
-                
+
+
                 <div class="row">
-                    <div class="col-sm-6">
-                        <h5 class="mb-3">Localização</h5>
-                        <p>País: <?php echo $location['country'];?></p>
-                        <p>Região: <?php echo $location['region'];?></p>
-                        <p>Cidade: <?php echo $location['name'];?></p>
-                        <p>Data e hora atual: <?php echo $location['current_time'];?></p>
+                    <div class="col-9">
+                        <h3>Tempo para a cidade <strong><?= $location['name'] ?></strong></h3>
+                        <p class="my-2">Região: <?= $location['region'] ?> | <?= $location['country']?> | <?= $location['current_time']?> | Previsão para <strong><?= $days ?></strong> dias </p>
                     </div>
-                    <div class="col-sm-6">
-                        <h5 class="mb-3">Clima Atual</h5>
-                        <p>Temperatura: <?php echo $current['temperature'];?>°C</p>
+                    <div class="col-3 text-end">
+                        <select class="form-select">
+                            <option value="Lisbon" <?= city_selected('Lisbon', $city)?>>Lisboa</option>
+                            <option value="Paris" <?= city_selected('Paris', $city)?>>>Paris</option>
+                            <option value="Madrid" <?= city_selected('Madrid', $city)?>>>Madrid</option>
+                            <option value="Brazil" <?= city_selected('Brazil', $city)?>>>Brazil</option>
+                            <option value="Maputo" <?= city_selected('Maputo', $city)?>>>Maputo</option>
+                            <option value="London" <?= city_selected('London', $city)?>>>London</option>
+                            <option value="Luanda" <?= city_selected('Luanda', $city)?>>>Luanda</option>
+                            <option value="Singapura" <?= city_selected('Singapura', $city)?>>>Singapura</option>
+                        </select>
+                    </div>
+                </div>
+                
+
+                <!-- current -->
+                <?php
+                   $weather_info = $current;
+                   include 'inc/weather_info.php'; 
+                ?>
+
+                <!-- forecast -->
+                <?php foreach($forecast as $day) : ?>
+                    <?php
+                        $weather_info = $day;
+                        include 'inc/weather_info.php'; 
+                    ?>
+                <?php endforeach; ?>
             </div>
 
         </div>
     </div>
+
+    <script>
+        const select = document.querySelector('select');
+        select.addEventListener('change', (e) => {
+            const city = e.target.value;
+            window.location.href = `index.php?city=${city}`;
+        })
+    </script>
     
 </body>
 </html>
